@@ -5,7 +5,7 @@ from excel import add_col
 from config import acc_pass,acc_email
 
 def enter(p):
-    browser = p.chromium.launch(headless=False)
+    browser = p.chromium.launch(headless=True)
     page = browser.new_page()
     page.goto('https://kwork.ru/projects')
 
@@ -74,9 +74,8 @@ def get_kwork(page,link):
     else:
         return project_data
 
-def start_main():
+def run_one_kwork(link):
     with sync_playwright() as p:
         enter_page = enter(p)
-        kwork = get_kwork(enter_page, 'https://kwork.ru/projects/3256897/view')
+        kwork = get_kwork(enter_page, link)
         return kwork
-add_col(start_main())
