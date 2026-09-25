@@ -1,15 +1,29 @@
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from config import agent_key
 from excel import add_col
 
-agent = ChatGroq(
+main = ChatGroq(
+    model="openai/gpt-oss-120b",
+    temperature=0.7,
+    max_tokens=None,
+    api_key=agent_key,
+)
+fallback1 = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    temperature=0.7,
+    max_tokens=None,
+    api_key=agent_key,
+)
+fallback2 = ChatGroq(
     model="openai/gpt-oss-20b",
     temperature=0.7,
+    max_tokens=None,
     api_key=agent_key,
 )
 
+agent = main.with_fallbacks([fallback1, fallback2])
 stack = """
 УМЕЮ (основное):
 - Python: парсинг (BeautifulSoup, Selenium, playwright), автоматизация, анализ данных (Pandas, NumPy)
@@ -99,3 +113,32 @@ def stack_chek(parse_data):
         }
     )
     return {"fits":answer.get("fits"), "unclear":answer.get("unclear"), "reason":answer.get("reason")}
+
+
+response_prompt = ChatPromptTemplate.from_messages([
+    ("system", """Ты — опытный фрилансер, пишешь реальный отклик на Kwork.
+
+Стиль:
+- Живой разговорный русский, как в мессенджере
+- Сразу по делу, без вступлений
+- Обращение только на "Вы"
+- Максимум 1 короткий абзац про опыт (если вообще нужен)
+- Дальше сразу уточняющие вопросы
+- Без смайликов вообще
+- Без слов "Итак", "Понял задачу", "Сделаю следующее", "Готов взяться" и подобных шаблонов
+
+Структура хорошего отклика:
+1. Очень коротко и по-человечески — что именно сделаешь (1-2 предложения максимум)
+2. Если нужно — одна короткая фраза про релевантный опыт
+3. Сразу вопросы, которые реально нужны, чтобы начать"""),
+("human", "Название: {title}\n\nТЗ: {task}\n\nТЗ размытое: {unclear}")])
+
+response_chain = response_prompt | agent | StrOutputParser()
+
+def make_answer(data):
+    answer = response_chain.invoke(
+        {
+            "title":data["title"],
+            "task":data["task"],
+            "unclear":data["unclear"]})
+    return answer

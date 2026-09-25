@@ -3,9 +3,22 @@ from pprint import pprint
 from playwright.sync_api import sync_playwright
 from excel import add_col
 from config import acc_pass,acc_email
+from contextlib import contextmanager
+from playwright.sync_api import sync_playwright
 
+@contextmanager
+def main_session():
+    """Открывает браузер, логинится и отдаёт page.
+    После выхода из with браузер автоматически закрывается.
+    """
+    with sync_playwright() as p:
+        page = enter(p)
+        try:
+            yield page
+        finally:
+            page.context.browser.close()
 def enter(p):
-    browser = p.chromium.launch(headless=True)
+    browser = p.chromium.launch(headless=False)
     page = browser.new_page()
     page.goto('https://kwork.ru/projects')
 
@@ -35,8 +48,8 @@ def get_kworks(page):
 
         project_id = card.locator("h1.wants-card__header-title a").first.get_attribute("href").replace("projects","").replace("/","")
         projects_list.append({
-            "название": title,
-            "тз": description,
+            "title": title,
+            "task": description,
             "cost": cost,
             "id":project_id
         })
@@ -46,6 +59,7 @@ def get_kworks(page):
         page.wait_for_selector('.want-card', state='attached')
         page.wait_for_timeout(1000)  # небольшая пауза для уверенности
         return projects_list + get_kworks(page)
+
     else:
         return projects_list
 
