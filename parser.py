@@ -1,5 +1,4 @@
 from time import sleep
-from pprint import pprint
 from playwright.sync_api import sync_playwright
 from excel import add_col
 from config import acc_pass,acc_email
@@ -18,7 +17,7 @@ def main_session():
         finally:
             page.context.browser.close()
 def enter(p):
-    browser = p.chromium.launch(headless=False)
+    browser = p.chromium.launch()
     page = browser.new_page()
     page.goto('https://kwork.ru/projects')
 
@@ -51,7 +50,8 @@ def get_kworks(page):
             "title": title,
             "task": description,
             "cost": cost,
-            "id":project_id
+            "id":project_id,
+            "link":f"https://kwork.ru/projects/{project_id}/view"
         })
     next_button = page.locator('.pagination__arrow.pagination__arrow--next')
     if next_button.count() > 0 and next_button.is_enabled():

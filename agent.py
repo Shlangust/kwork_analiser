@@ -1,8 +1,15 @@
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from config import agent_key
+from config import OMNIROUTE_URL,OMNIROUTE_KEY
 from excel import add_col
+from langchain_openai import ChatOpenAI
+
+
+
+
+"""
+OLD VERSION ON GROQ
 
 main = ChatGroq(
     model="openai/gpt-oss-120b",
@@ -24,6 +31,20 @@ fallback2 = ChatGroq(
 )
 
 agent = main.with_fallbacks([fallback1, fallback2])
+"""
+
+
+# New on omniroute
+main = ChatOpenAI(
+    model="test",
+    base_url=OMNIROUTE_URL,
+    api_key=OMNIROUTE_KEY,
+    temperature=0.7,
+)
+
+agent = main
+
+
 stack = """
 УМЕЮ (основное):
 - Python: парсинг (BeautifulSoup, Selenium, playwright), автоматизация, анализ данных (Pandas, NumPy)
@@ -142,3 +163,4 @@ def make_answer(data):
             "task":data["task"],
             "unclear":data["unclear"]})
     return answer
+
