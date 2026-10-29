@@ -1,15 +1,16 @@
+import os
+
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from config import OMNIROUTE_URL,OMNIROUTE_KEY
-from excel import add_col
-from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+agent_key = os.getenv("agent_key")
 
 
 
-
-"""
-OLD VERSION ON GROQ
+#OLD VERSION ON GROQ
 
 main = ChatGroq(
     model="openai/gpt-oss-120b",
@@ -31,16 +32,17 @@ fallback2 = ChatGroq(
 )
 
 agent = main.with_fallbacks([fallback1, fallback2])
-"""
 
+# new on omiroute
+# main = ChatOpenAI(
+#     model="test",
+#     base_url=OMNIROUTE_URL,
+#     api_key=OMNIROUTE_KEY,
+#     temperature=0.7,
+#     max_retries=3,
+#     timeout=30,
+# )
 
-# New on omniroute
-main = ChatOpenAI(
-    model="test",
-    base_url=OMNIROUTE_URL,
-    api_key=OMNIROUTE_KEY,
-    temperature=0.7,
-)
 
 agent = main
 
